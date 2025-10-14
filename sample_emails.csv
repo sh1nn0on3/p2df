@@ -1,0 +1,35 @@
+from,to,subject,body
+john.doe@company.com,jane.smith@company.com,Quarterly Report Review,"Hi Jane,
+
+Please review the attached quarterly report. We need to discuss the Q3 results in tomorrow's meeting.
+
+Best regards,
+John"
+alice.wang@tech.com,bob.jones@tech.com,Project Alpha - Security Concerns,"Bob,
+
+I've identified several security vulnerabilities in Project Alpha. We need to address these issues before the release.
+
+Detailed report attached.
+
+Alice"
+mike.brown@corp.com,sarah.lee@corp.com,Confidential: Merger Discussion,"Sarah,
+
+This is highly confidential. The board has approved moving forward with the merger talks. Please keep this information strictly private.
+
+Mike"
+lisa.chen@startup.io,team@startup.io,Team Update - New Funding Round,"Team,
+
+Great news! We've successfully closed our Series A funding round at $10M. This will help us scale faster.
+
+Let's celebrate this Friday!
+
+Lisa"
+david.kim@finance.com,audit@finance.com,Suspicious Transaction Alert,"Audit Team,
+
+We've detected suspicious transactions in account #4582. Please investigate immediately.
+
+Transaction IDs: TX-9871, TX-9872, TX-9873
+
+David Kim
+Fraud Detection Team"
+
