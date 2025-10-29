@@ -23,7 +23,7 @@ Route::get('/', function () {
 });
 
 Route::get('/home', function () {
-    return redirect()->route('/');
+    return redirect('/');
 });
 // ===========================
 // Authentication Routes
