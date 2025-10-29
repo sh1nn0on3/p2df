@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Email;
 use App\Models\DecryptionRequest;
+use App\Models\ForensicReport;
 use App\Services\CryptoService;
 use App\Services\LogService;
 use Illuminate\Http\Request;
@@ -324,6 +325,167 @@ class AdminController extends Controller
         ]);
 
         return view('admin.logs', compact('logs'));
+    }
+
+    /**
+     * Danh sách tất cả báo cáo từ investigator
+     */
+    public function listReports(Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $severity = $request->get('severity', 'all');
+
+        $query = ForensicReport::with(['email', 'investigator', 'decryptionRequest']);
+
+        // Filter by status
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // Filter by severity
+        if ($severity !== 'all') {
+            $query->where('severity', $severity);
+        }
+
+        $reports = $query->latest()->paginate(20);
+
+        // Ghi log xem danh sách báo cáo
+        $this->logService->log(LogService::ACTION_VIEW_REPORTS, null, [
+            'status' => $status,
+            'severity' => $severity,
+            'page' => $request->get('page', 1),
+        ]);
+
+        return view('admin.reports', compact('reports', 'status', 'severity'));
+    }
+
+    /**
+     * Xem chi tiết báo cáo
+     */
+    public function viewReport($reportId)
+    {
+        $report = ForensicReport::with(['email', 'investigator', 'decryptionRequest'])
+            ->findOrFail($reportId);
+
+        // Ghi log xem báo cáo
+        $this->logService->log(LogService::ACTION_VIEW_REPORT, (string)$reportId, [
+            'investigator_id' => $report->investigator_id,
+        ]);
+
+        return view('admin.report-detail', compact('report'));
+    }
+
+    /**
+     * Duyệt báo cáo - đánh dấu là đã xem xét
+     */
+    public function reviewReport(Request $request, $reportId)
+    {
+        $request->validate([
+            'admin_notes' => 'nullable|string|max:1000',
+            'action' => 'required|in:approved,rejected,needs_revision',
+        ]);
+
+        try {
+            $report = ForensicReport::findOrFail($reportId);
+
+            if ($report->status !== 'completed') {
+                return back()->with('error', 'Chỉ có thể duyệt báo cáo đã hoàn thành.');
+            }
+
+            $report->update([
+                'admin_reviewed_at' => now(),
+                'admin_reviewed_by' => Auth::id(),
+                'admin_notes' => $request->admin_notes,
+                'admin_action' => $request->action,
+            ]);
+
+            // Ghi log
+            $this->logService->log(LogService::ACTION_REVIEW_REPORT, (string)$reportId, [
+                'action' => $request->action,
+                'admin_notes' => $request->admin_notes,
+            ]);
+
+            $actionText = match($request->action) {
+                'approved' => 'đã phê duyệt',
+                'rejected' => 'đã từ chối',
+                'needs_revision' => 'yêu cầu chỉnh sửa',
+                default => 'đã xem xét'
+            };
+
+            return back()->with('success', "Báo cáo đã được {$actionText} thành công.");
+
+        } catch (Exception $e) {
+            return back()->with('error', 'Duyệt báo cáo thất bại: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Thống kê báo cáo
+     */
+    public function reportStats()
+    {
+        $stats = [
+            'total_reports' => ForensicReport::count(),
+            'completed_reports' => ForensicReport::completed()->count(),
+            'pending_review' => ForensicReport::completed()
+                ->whereNull('admin_reviewed_at')
+                ->count(),
+            'approved_reports' => ForensicReport::where('admin_action', 'approved')->count(),
+            'rejected_reports' => ForensicReport::where('admin_action', 'rejected')->count(),
+            'needs_revision' => ForensicReport::where('admin_action', 'needs_revision')->count(),
+        ];
+
+        // Thống kê theo mức độ nghiêm trọng
+        $severityStats = ForensicReport::selectRaw('severity, COUNT(*) as count')
+            ->groupBy('severity')
+            ->pluck('count', 'severity')
+            ->toArray();
+
+        return view('admin.report-stats', compact('stats', 'severityStats'));
+    }
+
+    /**
+     * Admin đọc nội dung email (chỉ khi cần thiết)
+     */
+    public function readEmailContent($emailId)
+    {
+        try {
+            $email = Email::findOrFail($emailId);
+            $admin = Auth::user();
+            
+            // Lấy private key của admin
+            $adminPrivateKeyPath = storage_path($admin->private_key_path);
+            
+            if (!file_exists($adminPrivateKeyPath)) {
+                return back()->with('error', 'Admin private key not found.');
+            }
+
+            // Giải mã AES key bằng Private Key của Admin
+            $aesKey = $this->cryptoService->rsaDecrypt(
+                $email->aes_key_encrypted_admin,
+                $adminPrivateKeyPath
+            );
+
+            // Giải mã nội dung email
+            $bodyDecrypted = $this->cryptoService->aesDecrypt(
+                $email->body_encrypted,
+                $aesKey
+            );
+
+            // Verify hash
+            $isValid = $this->cryptoService->verifyHash($bodyDecrypted, $email->hash);
+
+            // Ghi log - admin đọc nội dung email
+            $this->logService->log(LogService::ACTION_VIEW_EMAIL, (string)$emailId, [
+                'admin_read_content' => true,
+                'hash_valid' => $isValid,
+            ]);
+
+            return view('admin.email-content', compact('email', 'bodyDecrypted', 'isValid'));
+
+        } catch (Exception $e) {
+            return back()->with('error', 'Không thể đọc nội dung email: ' . $e->getMessage());
+        }
     }
 }
 

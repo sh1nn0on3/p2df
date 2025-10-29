@@ -42,6 +42,8 @@ class LogService
     public const ACTION_VIEW_WORKFLOW = 'view_workflow';
     public const ACTION_EXTRACT_EMAIL_LOGS = 'extract_email_logs';
     public const ACTION_VIEW_UPLOAD_FORM = 'view_upload_form';
+    public const ACTION_VIEW_REPORTS = 'view_reports';
+    public const ACTION_REVIEW_REPORT = 'review_report';
 
     /**
      * Ghi log hành động của user
@@ -519,6 +521,8 @@ class LogService
             'extract_email_logs' => 'Trích xuất logs',
             'view_logs' => 'Xem nhật ký hệ thống',
             'generate_keys' => 'Tạo cặp khóa RSA',
+            'view_reports' => 'Xem danh sách báo cáo',
+            'review_report' => 'Duyệt báo cáo',
         ];
 
         return $descriptions[$action] ?? $action;
@@ -552,6 +556,8 @@ class LogService
             'extract_email_logs' => 'fas fa-download',
             'view_logs' => 'fas fa-history',
             'generate_keys' => 'fas fa-key',
+            'view_reports' => 'fas fa-file-alt',
+            'review_report' => 'fas fa-gavel',
         ];
 
         return $icons[$action] ?? 'fas fa-circle';

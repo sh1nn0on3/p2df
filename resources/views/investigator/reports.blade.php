@@ -62,14 +62,33 @@
                         </td>
                         <td><small>{{ $report->created_at->format('Y-m-d H:i') }}</small></td>
                         <td>
-                            <a href="{{ route('investigator.reports.view', $report->id) }}" class="btn btn-sm btn-info">
-                                <i class="fas fa-eye"></i> View
-                            </a>
-                            @if($report->isDraft())
-                                <a href="{{ route('investigator.reports.edit', $report->id) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-edit"></i> Edit
+                            <div class="btn-group" role="group">
+                                <a href="{{ route('investigator.reports.view', $report->id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Xem
                                 </a>
-                            @endif
+                                @if($report->isDraft())
+                                    <a href="{{ route('investigator.reports.edit', $report->id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <form method="POST" action="{{ route('investigator.reports.status', $report->id) }}" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn btn-sm btn-success" 
+                                                onclick="return confirm('Bạn có chắc chắn muốn hoàn thành báo cáo này?')">
+                                            <i class="fas fa-check"></i> Hoàn Thành
+                                        </button>
+                                    </form>
+                                @elseif($report->isCompleted() && !$report->isReviewedByAdmin())
+                                    <form method="POST" action="{{ route('investigator.reports.status', $report->id) }}" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="status" value="draft">
+                                        <button type="submit" class="btn btn-sm btn-warning" 
+                                                onclick="return confirm('Bạn có chắc chắn muốn chuyển báo cáo về trạng thái bản nháp?')">
+                                            <i class="fas fa-undo"></i> Về Bản Nháp
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

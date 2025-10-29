@@ -233,6 +233,11 @@
                                  </a>
                              </li>
                              <li class="nav-item">
+                                 <a class="nav-link" href="{{ route('admin.reports') }}">
+                                     <i class="fas fa-file-alt"></i> Reports
+                                 </a>
+                             </li>
+                             <li class="nav-item">
                                  <a class="nav-link" href="{{ route('admin.workflow') }}">
                                      <i class="fas fa-sitemap"></i> Workflow
                                  </a>

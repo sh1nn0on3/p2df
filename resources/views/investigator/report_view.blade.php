@@ -219,17 +219,49 @@
             </div>
         </div>
 
+        <!-- Status Management -->
+        @if($report->isDraft() || ($report->isCompleted() && !$report->isReviewedByAdmin()))
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-cog"></i> Quản Lý Trạng Thái
+            </div>
+            <div class="card-body">
+                @if($report->isDraft())
+                    <p class="text-muted mb-3">Báo cáo hiện đang ở trạng thái bản nháp. Bạn có thể hoàn thành nó để gửi cho admin duyệt.</p>
+                    <form method="POST" action="{{ route('investigator.reports.status', $report->id) }}">
+                        @csrf
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="btn btn-success btn-block" 
+                                onclick="return confirm('Bạn có chắc chắn muốn hoàn thành báo cáo này? Sau khi hoàn thành, báo cáo sẽ được gửi cho admin duyệt.')">
+                            <i class="fas fa-check-circle"></i> Hoàn Thành Báo Cáo
+                        </button>
+                    </form>
+                @elseif($report->isCompleted() && !$report->isReviewedByAdmin())
+                    <p class="text-muted mb-3">Báo cáo đã hoàn thành và đang chờ admin duyệt. Bạn có thể chuyển về trạng thái bản nháp để chỉnh sửa.</p>
+                    <form method="POST" action="{{ route('investigator.reports.status', $report->id) }}">
+                        @csrf
+                        <input type="hidden" name="status" value="draft">
+                        <button type="submit" class="btn btn-warning btn-block" 
+                                onclick="return confirm('Bạn có chắc chắn muốn chuyển báo cáo về trạng thái bản nháp?')">
+                            <i class="fas fa-undo"></i> Chuyển Về Bản Nháp
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Export Options -->
         <div class="card mt-3">
             <div class="card-header">
-                <i class="fas fa-download"></i> Export Options
+                <i class="fas fa-download"></i> Tùy Chọn Xuất
             </div>
             <div class="card-body">
                 <button class="btn btn-sm btn-primary btn-block" onclick="window.print()">
-                    <i class="fas fa-print"></i> Print Report
+                    <i class="fas fa-print"></i> In Báo Cáo
                 </button>
-                <button class="btn btn-sm btn-secondary btn-block" onclick="alert('Export to PDF feature coming soon!')">
-                    <i class="fas fa-file-pdf"></i> Export to PDF
+                <button class="btn btn-sm btn-secondary btn-block" onclick="alert('Tính năng xuất PDF sẽ sớm có!')">
+                    <i class="fas fa-file-pdf"></i> Xuất PDF
                 </button>
             </div>
         </div>

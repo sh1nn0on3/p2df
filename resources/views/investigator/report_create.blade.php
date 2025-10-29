@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Create Forensic Report')
+@section('title', 'Tạo Báo Cáo Điều Tra')
 
 @push('styles')
 <style>
@@ -9,13 +9,59 @@
         padding: 10px;
         margin-bottom: 10px;
         background: #f8f9fa;
+        border-radius: 5px;
+        transition: all 0.3s ease;
     }
     .log-item:hover {
         background: #e9ecef;
+        transform: translateX(5px);
     }
     .log-item.selected {
         border-left-color: #28a745;
         background: #d4edda;
+        box-shadow: 0 2px 5px rgba(40, 167, 69, 0.2);
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .form-section h6 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #007bff;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+    }
+    
+    .status-badge.draft {
+        background: #ffc107;
+        color: #212529;
+    }
+    
+    .status-badge.completed {
+        background: #28a745;
+        color: white;
+    }
+    
+    .email-preview {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
     }
 </style>
 @endpush
@@ -23,12 +69,35 @@
 @section('content')
 <div class="row">
     <div class="col-12">
-        <h2><i class="fas fa-file-medical"></i> Create Forensic Report</h2>
-        <p class="text-muted">Investigation report for email: <strong>{{ $email->subject }}</strong></p>
-        <a href="{{ route('investigator.emails.view', $email->id) }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Back to Email
-        </a>
-        <hr>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-file-medical"></i> Tạo Báo Cáo Điều Tra</h2>
+                <p class="text-muted mb-0">Báo cáo điều tra cho email: <strong>{{ $email->subject }}</strong></p>
+            </div>
+            <div>
+                <a href="{{ route('investigator.emails.view', $email->id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay Lại Email
+                </a>
+            </div>
+        </div>
+        
+        <!-- Email Preview -->
+        <div class="email-preview">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong><i class="fas fa-user"></i> Người gửi:</strong> {{ $email->from }}
+                </div>
+                <div class="col-md-6">
+                    <strong><i class="fas fa-user"></i> Người nhận:</strong> {{ $email->to }}
+                </div>
+                <div class="col-md-6">
+                    <strong><i class="fas fa-calendar"></i> Ngày tạo:</strong> {{ $email->created_at->format('d/m/Y H:i') }}
+                </div>
+                <div class="col-md-6">
+                    <strong><i class="fas fa-hashtag"></i> Email ID:</strong> #{{ $email->id }}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -37,115 +106,139 @@
     
     <div class="row">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-file-alt"></i> Report Details
+            <div class="form-section">
+                <h6><i class="fas fa-file-alt"></i> Thông Tin Báo Cáo</h6>
+                <div class="form-group">
+                    <label for="title">Tiêu đề Báo cáo *</label>
+                    <input type="text" 
+                           class="form-control @error('title') is-invalid @enderror" 
+                           id="title" 
+                           name="title" 
+                           value="{{ old('title') }}" 
+                           required 
+                           placeholder="VD: Điều tra Email Nghi Ngờ - Phishing Attempt">
+                    @error('title')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label for="title">Report Title *</label>
-                        <input type="text" 
-                               class="form-control @error('title') is-invalid @enderror" 
-                               id="title" 
-                               name="title" 
-                               value="{{ old('title') }}" 
-                               required 
-                               placeholder="e.g., Suspicious Email Investigation - Phishing Attempt">
-                        @error('title')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
 
-                    <div class="form-group">
-                        <label for="severity">Severity Level *</label>
-                        <select class="form-control @error('severity') is-invalid @enderror" id="severity" name="severity" required>
-                            <option value="low" {{ old('severity') === 'low' ? 'selected' : '' }}>Low - Minor concerns</option>
-                            <option value="medium" {{ old('severity', 'medium') === 'medium' ? 'selected' : '' }}>Medium - Moderate risk</option>
-                            <option value="high" {{ old('severity') === 'high' ? 'selected' : '' }}>High - Significant threat</option>
-                            <option value="critical" {{ old('severity') === 'critical' ? 'selected' : '' }}>Critical - Immediate action required</option>
-                        </select>
-                        @error('severity')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                <div class="form-group">
+                    <label for="severity">Mức độ Nghiêm trọng *</label>
+                    <select class="form-control @error('severity') is-invalid @enderror" id="severity" name="severity" required>
+                        <option value="low" {{ old('severity') === 'low' ? 'selected' : '' }}>Thấp - Mối quan ngại nhỏ</option>
+                        <option value="medium" {{ old('severity', 'medium') === 'medium' ? 'selected' : '' }}>Trung bình - Rủi ro vừa phải</option>
+                        <option value="high" {{ old('severity') === 'high' ? 'selected' : '' }}>Cao - Mối đe dọa đáng kể</option>
+                        <option value="critical" {{ old('severity') === 'critical' ? 'selected' : '' }}>Nghiêm trọng - Cần hành động ngay lập tức</option>
+                    </select>
+                    @error('severity')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h6><i class="fas fa-search"></i> Phát Hiện Chính</h6>
 
-                    <div class="form-group">
-                        <label for="findings">Key Findings * <small class="text-muted">(min 50 chars)</small></label>
-                        <textarea class="form-control @error('findings') is-invalid @enderror" 
-                                  id="findings" 
-                                  name="findings" 
-                                  rows="5" 
-                                  required 
-                                  placeholder="Summarize the main findings from your investigation...">{{ old('findings') }}</textarea>
-                        @error('findings')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text text-muted">What did you discover in this email?</small>
-                    </div>
+                <div class="form-group">
+                    <label for="findings">Phát Hiện Chính * <small class="text-muted">(tối thiểu 50 ký tự)</small></label>
+                    <textarea class="form-control @error('findings') is-invalid @enderror" 
+                              id="findings" 
+                              name="findings" 
+                              rows="5" 
+                              required 
+                              placeholder="Tóm tắt những phát hiện chính từ cuộc điều tra của bạn...">{{ old('findings') }}</textarea>
+                    @error('findings')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="form-text text-muted">Bạn đã phát hiện gì trong email này?</small>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h6><i class="fas fa-microscope"></i> Phân Tích Chi Tiết</h6>
 
-                    <div class="form-group">
-                        <label for="analysis">Detailed Analysis * <small class="text-muted">(min 100 chars)</small></label>
-                        <textarea class="form-control @error('analysis') is-invalid @enderror" 
-                                  id="analysis" 
-                                  name="analysis" 
-                                  rows="8" 
-                                  required 
-                                  placeholder="Provide detailed technical analysis...">{{ old('analysis') }}</textarea>
-                        @error('analysis')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text text-muted">Include technical details, patterns, and evidence.</small>
-                    </div>
+                <div class="form-group">
+                    <label for="analysis">Phân Tích Chi Tiết * <small class="text-muted">(tối thiểu 100 ký tự)</small></label>
+                    <textarea class="form-control @error('analysis') is-invalid @enderror" 
+                              id="analysis" 
+                              name="analysis" 
+                              rows="8" 
+                              required 
+                              placeholder="Cung cấp phân tích kỹ thuật chi tiết...">{{ old('analysis') }}</textarea>
+                    @error('analysis')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="form-text text-muted">Bao gồm chi tiết kỹ thuật, mẫu hình và bằng chứng.</small>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h6><i class="fas fa-lightbulb"></i> Khuyến Nghị</h6>
 
-                    <div class="form-group">
-                        <label for="recommendations">Recommendations</label>
-                        <textarea class="form-control @error('recommendations') is-invalid @enderror" 
-                                  id="recommendations" 
-                                  name="recommendations" 
-                                  rows="4" 
-                                  placeholder="Provide recommendations for action...">{{ old('recommendations') }}</textarea>
-                        @error('recommendations')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text text-muted">What actions should be taken based on your findings?</small>
-                    </div>
+                <div class="form-group">
+                    <label for="recommendations">Khuyến Nghị</label>
+                    <textarea class="form-control @error('recommendations') is-invalid @enderror" 
+                              id="recommendations" 
+                              name="recommendations" 
+                              rows="4" 
+                              placeholder="Cung cấp khuyến nghị cho hành động...">{{ old('recommendations') }}</textarea>
+                    @error('recommendations')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="form-text text-muted">Những hành động nào nên được thực hiện dựa trên phát hiện của bạn?</small>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h6><i class="fas fa-cog"></i> Trạng Thái Báo Cáo</h6>
 
-                    <div class="form-group">
-                        <label>Report Status *</label>
-                        <div>
-                            <div class="form-check form-check-inline">
+                <div class="form-group">
+                    <label>Trạng Thái Báo Cáo *</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="status" id="status_draft" value="draft" {{ old('status', 'draft') === 'draft' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="status_draft">
-                                    <i class="fas fa-save"></i> Save as Draft
+                                    <span class="status-badge draft">
+                                        <i class="fas fa-save"></i> Lưu Bản Nháp
+                                    </span>
+                                    <br><small class="text-muted">Tiếp tục chỉnh sửa sau</small>
                                 </label>
                             </div>
-                            <div class="form-check form-check-inline">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="status" id="status_completed" value="completed" {{ old('status') === 'completed' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="status_completed">
-                                    <i class="fas fa-check-circle"></i> Mark as Completed
+                                    <span class="status-badge completed">
+                                        <i class="fas fa-check-circle"></i> Hoàn Thành
+                                    </span>
+                                    <br><small class="text-muted">Gửi cho admin duyệt</small>
                                 </label>
                             </div>
                         </div>
                     </div>
-
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i> Create Report
-                    </button>
-                    <a href="{{ route('investigator.reports') }}" class="btn btn-secondary">
-                        Cancel
-                    </a>
                 </div>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-save"></i> Tạo Báo Cáo
+                </button>
+                <a href="{{ route('investigator.reports') }}" class="btn btn-secondary btn-lg ml-2">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <i class="fas fa-history"></i> Related Logs ({{ $relatedLogs->count() }})
+                    <i class="fas fa-history"></i> Logs Liên Quan ({{ $relatedLogs->count() }})
                 </div>
                 <div class="card-body" style="max-height: 600px; overflow-y: auto;">
                     <p class="small text-muted">
-                        Select logs to attach to this report. These logs provide audit trail evidence.
+                        Chọn logs để đính kèm vào báo cáo này. Các logs này cung cấp bằng chứng audit trail.
                     </p>
 
                     @forelse($relatedLogs as $log)
@@ -174,15 +267,15 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-muted small">No related logs found.</p>
+                        <p class="text-muted small">Không tìm thấy logs liên quan.</p>
                     @endforelse
                 </div>
                 <div class="card-footer">
                     <button type="button" class="btn btn-sm btn-primary" id="selectAllLogs">
-                        <i class="fas fa-check-square"></i> Select All
+                        <i class="fas fa-check-square"></i> Chọn Tất Cả
                     </button>
                     <button type="button" class="btn btn-sm btn-secondary" id="deselectAllLogs">
-                        <i class="fas fa-square"></i> Deselect All
+                        <i class="fas fa-square"></i> Bỏ Chọn Tất Cả
                     </button>
                 </div>
             </div>

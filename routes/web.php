@@ -56,6 +56,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // Workflow Documentation
     Route::get('/workflow', [AdminController::class, 'workflow'])->name('workflow');
+
+    // Forensic Reports Management
+    Route::get('/reports', [AdminController::class, 'listReports'])->name('reports');
+    Route::get('/reports/{id}', [AdminController::class, 'viewReport'])->name('reports.view');
+    Route::post('/reports/{id}/review', [AdminController::class, 'reviewReport'])->name('reports.review');
+    Route::get('/reports-stats', [AdminController::class, 'reportStats'])->name('reports.stats');
+    
+    // Admin read email content
+    Route::get('/emails/{id}/content', [AdminController::class, 'readEmailContent'])->name('emails.content');
 });
 
 // ===========================
@@ -86,6 +95,7 @@ Route::prefix('investigator')->name('investigator.')->middleware(['auth', 'role:
     Route::get('/reports/{id}', [InvestigatorController::class, 'viewReport'])->name('reports.view');
     Route::get('/reports/{id}/edit', [InvestigatorController::class, 'editReportForm'])->name('reports.edit');
     Route::put('/reports/{id}', [InvestigatorController::class, 'updateReport'])->name('reports.update');
+    Route::post('/reports/{id}/status', [InvestigatorController::class, 'updateReportStatus'])->name('reports.status');
     
     // AJAX endpoint for extracting logs
     Route::get('/emails/{id}/logs', [InvestigatorController::class, 'extractEmailLogs'])->name('emails.logs');

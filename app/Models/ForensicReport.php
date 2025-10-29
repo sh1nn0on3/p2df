@@ -26,6 +26,10 @@ class ForensicReport extends Model
         'related_logs',
         'status',
         'completed_at',
+        'admin_reviewed_at',
+        'admin_reviewed_by',
+        'admin_notes',
+        'admin_action',
     ];
 
     /**
@@ -36,6 +40,7 @@ class ForensicReport extends Model
     protected $casts = [
         'related_logs' => 'array',
         'completed_at' => 'datetime',
+        'admin_reviewed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -118,6 +123,48 @@ class ForensicReport extends Model
             'high' => 'warning',
             'critical' => 'danger',
             default => 'secondary',
+        };
+    }
+
+    /**
+     * Relationship: Report reviewed by admin
+     */
+    public function adminReviewer()
+    {
+        return $this->belongsTo(User::class, 'admin_reviewed_by');
+    }
+
+    /**
+     * Check if report has been reviewed by admin
+     */
+    public function isReviewedByAdmin(): bool
+    {
+        return !is_null($this->admin_reviewed_at);
+    }
+
+    /**
+     * Get admin action badge color
+     */
+    public function getAdminActionBadgeColor(): string
+    {
+        return match($this->admin_action) {
+            'approved' => 'success',
+            'rejected' => 'danger',
+            'needs_revision' => 'warning',
+            default => 'secondary',
+        };
+    }
+
+    /**
+     * Get admin action text
+     */
+    public function getAdminActionText(): string
+    {
+        return match($this->admin_action) {
+            'approved' => 'Đã phê duyệt',
+            'rejected' => 'Đã từ chối',
+            'needs_revision' => 'Cần chỉnh sửa',
+            default => 'Chưa xem xét',
         };
     }
 }

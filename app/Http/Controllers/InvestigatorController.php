@@ -349,6 +349,44 @@ class InvestigatorController extends Controller
     }
 
     /**
+     * Investigator đổi trạng thái báo cáo từ draft thành completed
+     */
+    public function updateReportStatus(Request $request, $reportId)
+    {
+        $request->validate([
+            'status' => 'required|in:draft,completed',
+        ]);
+
+        try {
+            $investigator = Auth::user();
+            $report = ForensicReport::where('id', $reportId)
+                ->where('investigator_id', $investigator->id)
+                ->firstOrFail();
+
+            $oldStatus = $report->status;
+            $newStatus = $request->status;
+
+            // Cập nhật trạng thái
+            $report->update([
+                'status' => $newStatus,
+                'completed_at' => $newStatus === 'completed' ? now() : null,
+            ]);
+
+            // Ghi log
+            $this->logService->logUpdateReport($report->id, $newStatus, [
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+            ]);
+
+            $statusText = $newStatus === 'completed' ? 'hoàn thành' : 'bản nháp';
+            return back()->with('success', "Báo cáo đã được chuyển sang trạng thái {$statusText}.");
+
+        } catch (Exception $e) {
+            return back()->with('error', 'Cập nhật trạng thái thất bại: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Xem chi tiết báo cáo điều tra
      */
     public function viewReport($reportId)
