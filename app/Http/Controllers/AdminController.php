@@ -307,24 +307,44 @@ class AdminController extends Controller
     {
         $action = $request->get('action');
         $role = $request->get('role');
+        $search = $request->get('search');
 
-        $logs = $this->logService->getRecentLogs(100);
+        // Get logs from database with eager loading
+        $query = \App\Models\ForensicLog::with('user')->orderBy('created_at', 'desc');
 
-        // Filter
+        // Search filter
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('action', 'LIKE', "%{$search}%")
+                  ->orWhere('target_id', 'LIKE', "%{$search}%")
+                  ->orWhere('ip_address', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function($userQuery) use ($search) {
+                      $userQuery->where('name', 'LIKE', "%{$search}%")
+                                ->orWhere('email', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        // Action filter
         if ($action) {
-            $logs = $logs->where('action', $action);
+            $query->where('action', $action);
         }
+        
+        // Role filter
         if ($role) {
-            $logs = $logs->where('role', $role);
+            $query->where('role', $role);
         }
+
+        $logs = $query->limit(100)->get();
 
         // Ghi log xem logs
         $this->logService->logViewLogs([
             'action' => $action,
             'role' => $role,
+            'search' => $search,
         ]);
 
-        return view('admin.logs', compact('logs'));
+        return view('admin.logs', compact('logs', 'search'));
     }
 
     /**

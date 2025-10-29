@@ -1,0 +1,16 @@
+from,to,subject,body
+john.smith@company.com,manager@company.com,Urgent Meeting Request,We need to schedule an urgent meeting to discuss the security breach incident. Please respond as soon as possible.
+alice.williams@external.com,hr@company.com,Job Application Submission,Attached is my resume for the Software Engineer position. I have 5 years of experience in cybersecurity.
+suspicious@unknown.com,finance@company.com,Invoice Payment Required,Please find attached invoice #INV-2024-001. Payment is due within 14 days. Wire transfer details included.
+mark.thompson@company.com,it.support@company.com,Password Reset Issue,My account has been locked after multiple failed login attempts. I did not initiate these attempts. Please investigate.
+phishing@fake-bank.com,all.staff@company.com,Security Alert - Action Required,Your account has been compromised. Click here to verify your identity: http://fake-bank-verify.com/login
+sarah.jones@partner.com,business@company.com,Contract Renewal Discussion,Let's discuss the renewal of our service agreement. Current contract expires end of this month. Can we schedule a call?
+admin@company.com,employees@company.com,IT Maintenance Notice,Scheduled maintenance will occur this weekend from 2 AM to 6 AM. System downtime expected. Please plan accordingly.
+anonymous.tip@investigation.com,legal@company.com,Confidential Report,I have information regarding potential fraud within the finance department. This requires immediate investigation.
+client.support@vendor.com,sales@company.com,Product Order Confirmation,Thank you for your order #PO-789. Estimated delivery date is next Friday. Tracking number will be sent separately.
+r.martinez@company.com,cfo@company.com,Q4 Financial Report,Attached is the preliminary Q4 financial report. Please review and provide feedback before board meeting next week.
+extortion@scammer.com,ceo@company.com,Urgent Security Notice,We have detected your network has been breached. Pay $50,000 in Bitcoin to avoid data leak. Payment instructions attached.
+lisa.anderson@company.com,compliance@company.com,Data Privacy Audit Request,We need to conduct a data privacy audit next month. Please prepare access to employee data records for review.
+tech.team@company.com,developers@company.com,Code Repository Migration,We're moving to new Git server next week. Please backup all local repositories before migration starts.
+external.auditor@consulting.com,admin@company.com,Annual Security Assessment,Our annual security assessment is scheduled. We'll need access to system logs and security policies documentation.
+marketing@company.com,customers@company.com,New Product Launch Announcement,Exciting news! Our new security product launches next month. Early bird discount available for first 100 customers.
