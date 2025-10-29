@@ -107,10 +107,27 @@
                         <span class="encrypted-badge ml-2">
                             <i class="fas fa-lock"></i> Mã hóa
                         </span>
+                        @if($email->sender_ip)
+                            <span class="badge badge-secondary ml-1" title="Sender IP: {{ $email->sender_ip }}">
+                                <i class="fas fa-network-wired"></i> IP
+                            </span>
+                        @endif
+                        @if($email->message_id)
+                            <span class="badge badge-info ml-1" title="Message ID: {{ $email->message_id }}">
+                                <i class="fas fa-fingerprint"></i> ID
+                            </span>
+                        @endif
                     </div>
-                    <small class="email-meta">
-                        {{ $email->created_at->format('d/m/Y H:i') }}
-                    </small>
+                    <div class="text-right">
+                        @if($email->date_sent)
+                            <small class="email-meta d-block">
+                                <i class="fas fa-paper-plane"></i> {{ $email->date_sent->format('d/m/Y H:i') }}
+                            </small>
+                        @endif
+                        <small class="email-meta">
+                            {{ $email->created_at->format('d/m/Y H:i') }}
+                        </small>
+                    </div>
                 </div>
 
                 <!-- Subject -->
@@ -124,10 +141,22 @@
                         <i class="fas fa-user text-primary"></i> 
                         <strong>Từ:</strong> {{ Str::limit($email->from, 30) }}
                     </div>
-                    <div>
+                    <div class="mb-1">
                         <i class="fas fa-user text-info"></i> 
                         <strong>Đến:</strong> {{ Str::limit($email->to, 30) }}
                     </div>
+                    @if($email->cc)
+                    <div class="mb-1">
+                        <i class="fas fa-users text-secondary"></i> 
+                        <strong>CC:</strong> {{ Str::limit($email->cc, 25) }}
+                    </div>
+                    @endif
+                    @if($email->date_sent)
+                    <div class="mb-1">
+                        <i class="fas fa-clock text-warning"></i> 
+                        <strong>Gửi:</strong> {{ $email->date_sent->format('d/m/Y H:i') }}
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Warning -->

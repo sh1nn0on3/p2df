@@ -1,0 +1,5 @@
+from,to,subject,body,date_sent
+john.doe@company.com,jane.smith@company.com,Quarterly Report Review,"Hi Jane, Please review the quarterly report.",2025-10-15 09:30:00
+alice.wang@tech.com,bob.jones@tech.com,Security Audit,"Security vulnerabilities found. Need immediate attention.",2025-10-18 14:15:00
+sarah.connor@example.org,admin@example.org,Data Breach Alert,"URGENT: Security breach detected. Immediate action required.",2025-10-20 03:50:00
+

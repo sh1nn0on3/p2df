@@ -14,16 +14,40 @@
     }
     
     .email-content {
-        background: #f8f9fa;
-        border: 2px solid #dee2e6;
-        border-radius: 10px;
-        padding: 25px;
-        font-family: 'Courier New', monospace;
+        background: #ffffff;
+        border: none;
+        border-radius: 0;
+        padding: 30px;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         white-space: pre-wrap;
         word-wrap: break-word;
-        line-height: 1.6;
-        max-height: 500px;
+        word-break: break-word;
+        line-height: 1.9;
+        color: #333;
+        font-size: 15px;
+        min-height: 150px;
+        width: 100%;
+        overflow: visible;
+    }
+    
+    .email-content-wrapper {
+        position: relative;
+        max-height: 800px;
         overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+    
+    .email-content pre {
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #007bff;
+        margin: 10px 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
     }
     
     .verification-badge {
@@ -61,8 +85,11 @@
             <p class="text-muted mb-0">Xem nội dung email để đối chiếu với báo cáo</p>
         </div>
         <div>
-            <a href="{{ route('admin.reports') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Quay Lại Báo Cáo
+            <a href="{{ route('admin.emails') }}" class="btn btn-outline-secondary mr-2">
+                <i class="fas fa-arrow-left"></i> Quay Lại Danh Sách
+            </a>
+            <a href="{{ route('admin.reports') }}" class="btn btn-outline-info">
+                <i class="fas fa-file-alt"></i> Báo Cáo
             </a>
         </div>
     </div>
@@ -90,24 +117,98 @@
             <div class="card-body">
                 <div class="email-info">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-3">
                             <strong><i class="fas fa-user"></i> Người gửi:</strong><br>
                             <span class="text-muted">{{ $email->from }}</span>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-3">
                             <strong><i class="fas fa-user"></i> Người nhận:</strong><br>
                             <span class="text-muted">{{ $email->to }}</span>
                         </div>
-                        <div class="col-md-6">
+                        @if($email->cc)
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-users"></i> CC:</strong><br>
+                            <span class="text-muted">{{ $email->cc }}</span>
+                        </div>
+                        @endif
+                        @if($email->bcc)
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-user-secret"></i> BCC:</strong><br>
+                            <span class="text-muted">{{ $email->bcc }}</span>
+                        </div>
+                        @endif
+                        <div class="col-md-12 mb-3">
                             <strong><i class="fas fa-subject"></i> Tiêu đề:</strong><br>
                             <span class="text-muted">{{ $email->subject }}</span>
                         </div>
-                        <div class="col-md-6">
-                            <strong><i class="fas fa-calendar"></i> Ngày tạo:</strong><br>
+                        @if($email->date_sent)
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-paper-plane"></i> Ngày gửi:</strong><br>
+                            <span class="text-muted">{{ $email->date_sent->format('d/m/Y H:i:s') }}</span>
+                        </div>
+                        @endif
+                        @if($email->date_received)
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-inbox"></i> Ngày nhận:</strong><br>
+                            <span class="text-muted">{{ $email->date_received->format('d/m/Y H:i:s') }}</span>
+                        </div>
+                        @endif
+                        @if($email->message_id)
+                        <div class="col-md-12 mb-3">
+                            <strong><i class="fas fa-fingerprint"></i> Message ID:</strong><br>
+                            <span class="text-muted small">{{ $email->message_id }}</span>
+                        </div>
+                        @endif
+                        @if($email->reply_to)
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-reply"></i> Reply-To:</strong><br>
+                            <span class="text-muted">{{ $email->reply_to }}</span>
+                        </div>
+                        @endif
+                        @if($email->sender_ip)
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-network-wired"></i> Sender IP:</strong><br>
+                            <span class="text-muted">{{ $email->sender_ip }}</span>
+                        </div>
+                        @endif
+                        @if($email->mailer)
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-mail-bulk"></i> Mailer/Client:</strong><br>
+                            <span class="text-muted">{{ $email->mailer }}</span>
+                        </div>
+                        @endif
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-calendar"></i> Ngày tạo trong hệ thống:</strong><br>
                             <span class="text-muted">{{ $email->created_at->format('d/m/Y H:i:s') }}</span>
                         </div>
                     </div>
                 </div>
+                
+                @if($email->headers && is_array($email->headers))
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-info" type="button" data-toggle="collapse" data-target="#headersCollapse">
+                        <i class="fas fa-code"></i> Xem Email Headers
+                    </button>
+                    <div class="collapse mt-2" id="headersCollapse">
+                        <div class="card card-body bg-dark text-light" style="font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;">
+                            @foreach($email->headers as $key => $value)
+                                <div><strong>{{ $key }}:</strong> {{ is_array($value) ? json_encode($value) : $value }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+                @endif
+                
+                @if($email->attachments_info && is_array($email->attachments_info) && count($email->attachments_info) > 0)
+                <div class="mt-3">
+                    <strong><i class="fas fa-paperclip"></i> Attachments:</strong>
+                    <ul class="mb-0">
+                        @foreach($email->attachments_info as $attachment)
+                            <li>{{ is_array($attachment) ? ($attachment['name'] ?? json_encode($attachment)) : $attachment }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
             </div>
         </div>
 
@@ -119,9 +220,41 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="email-content">
-                    {{ $bodyDecrypted }}
-                </div>
+                @if(empty($bodyDecrypted))
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Lỗi:</strong> Nội dung email không thể hiển thị được. 
+                        Vui lòng kiểm tra lại email đã được mã hóa đúng cách chưa.
+                    </div>
+                @else
+                    <!-- Debug Info -->
+                    <div class="alert alert-info small mb-3" style="display: none;" id="debugInfo">
+                        <strong>Debug Info:</strong><br>
+                        Length: {{ strlen($bodyDecrypted) }} chars<br>
+                        Lines: {{ substr_count($bodyDecrypted, "\n") + 1 }}<br>
+                        First 50: {{ substr($bodyDecrypted, 0, 50) }}...<br>
+                        Last 50: ...{{ substr($bodyDecrypted, -50) }}
+                    </div>
+                    
+                    <div class="email-content-wrapper">
+                        <pre class="email-content" id="emailContentDisplay">{{ $bodyDecrypted }}</pre>
+                    </div>
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Độ dài:</strong> {{ number_format(strlen($bodyDecrypted)) }} ký tự
+                            @if(strlen($bodyDecrypted) > 0)
+                                | <strong>Số dòng:</strong> {{ substr_count($bodyDecrypted, "\n") + 1 }}
+                            @endif
+                            <button type="button" class="btn btn-sm btn-link p-0 ml-2" onclick="document.getElementById('debugInfo').style.display = document.getElementById('debugInfo').style.display === 'none' ? 'block' : 'none';">
+                                <i class="fas fa-bug"></i> Debug
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyEmailContent()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                @endif
                 
                 <!-- Hash Verification -->
                 <div class="text-center mt-4">
@@ -198,11 +331,50 @@
 @push('scripts')
 <script>
     // Auto-hide content after 5 minutes for security
-    setTimeout(function() {
-        if (confirm('Vì lý do bảo mật, nội dung email sẽ bị ẩn sau 5 phút.\n\nBạn có muốn quay lại trang báo cáo không?')) {
-            window.location.href = '{{ route('admin.reports') }}';
+    (function() {
+        var emailsUrl = '{{ route('admin.emails') }}';
+        setTimeout(function() {
+            if (confirm('Vì lý do bảo mật, nội dung email sẽ bị ẩn sau 5 phút.\\n\\nBạn có muốn quay lại trang danh sách email không?')) {
+                window.location.href = emailsUrl;
+            }
+        }, 300000); // 5 minutes
+    })();
+    
+    // Kiểm tra nội dung có được hiển thị không
+    document.addEventListener('DOMContentLoaded', function() {
+        var contentDiv = document.getElementById('emailContentDisplay');
+        if (contentDiv) {
+            var contentText = contentDiv.textContent || contentDiv.innerText || '';
+            if (contentText.trim().length === 0) {
+                console.warn('Email content appears to be empty');
+            } else {
+                console.log('Email content loaded successfully, length:', contentText.length);
+                console.log('First 200 chars:', contentText.substring(0, 200));
+                console.log('Last 200 chars:', contentText.substring(Math.max(0, contentText.length - 200)));
+            }
         }
-    }, 300000); // 5 minutes
+    });
+    
+    // Copy email content
+    function copyEmailContent() {
+        var contentDiv = document.getElementById('emailContentDisplay');
+        if (contentDiv) {
+            var contentText = contentDiv.textContent || contentDiv.innerText || '';
+            var textarea = document.createElement('textarea');
+            textarea.value = contentText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                alert('Đã copy nội dung email vào clipboard!');
+            } catch (err) {
+                alert('Lỗi khi copy. Vui lòng chọn và copy thủ công.');
+            }
+            document.body.removeChild(textarea);
+        }
+    }
 </script>
 @endpush
 @endsection

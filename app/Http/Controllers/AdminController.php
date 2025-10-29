@@ -7,9 +7,11 @@ use App\Models\DecryptionRequest;
 use App\Models\ForensicReport;
 use App\Services\CryptoService;
 use App\Services\LogService;
+use App\Services\EmailMetadataParser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 /**
@@ -25,11 +27,13 @@ class AdminController extends Controller
 {
     protected $cryptoService;
     protected $logService;
+    protected $metadataParser;
 
-    public function __construct(CryptoService $cryptoService, LogService $logService)
+    public function __construct(CryptoService $cryptoService, LogService $logService, EmailMetadataParser $metadataParser)
     {
         $this->cryptoService = $cryptoService;
         $this->logService = $logService;
+        $this->metadataParser = $metadataParser;
     }
 
     /**
@@ -88,9 +92,43 @@ class AdminController extends Controller
             $file = $request->file('email_file');
             $path = $file->getRealPath();
             
-            // Đọc file CSV
-            $csv = array_map('str_getcsv', file($path));
-            $header = array_shift($csv); // Bỏ dòng header
+            // Đọc file CSV - xử lý đúng quoted fields có newlines
+            $csv = [];
+            $headerRow = null;
+            
+            // Sử dụng SplFileObject để parse CSV đúng cách với quoted fields có newlines
+            $file = new \SplFileObject($path, 'r');
+            $file->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY | \SplFileObject::READ_AHEAD);
+            $file->setCsvControl(',', '"', '"');
+            
+            $rowIndex = 0;
+            while (!$file->eof()) {
+                $row = $file->fgetcsv();
+                if ($row === false || (is_array($row) && count(array_filter($row)) === 0)) {
+                    continue;
+                }
+                
+                // Dòng đầu tiên là header
+                if ($rowIndex === 0) {
+                    $headerRow = array_map('strtolower', array_map('trim', $row));
+                    $rowIndex++;
+                    continue;
+                }
+                
+                // Lọc các row có đủ dữ liệu
+                if (count($row) >= 4) {
+                    $csv[] = $row;
+                }
+                
+                $rowIndex++;
+            }
+            unset($file);
+            
+            // Log để debug
+            Log::info('CSV Upload Started', [
+                'rows_count' => count($csv),
+                'headers' => $headerRow,
+            ]);
             
             $uploadedCount = 0;
             $errors = [];
@@ -105,40 +143,79 @@ class AdminController extends Controller
 
             foreach ($csv as $index => $row) {
                 if (count($row) < 4) {
-                    $errors[] = "Row " . ($index + 2) . ": Invalid format";
+                    $errors[] = "Row " . ($index + 2) . ": Invalid format (need at least from,to,subject,body)";
                     continue;
                 }
 
                 try {
-                    [$from, $to, $subject, $body] = $row;
+                    // Parse metadata từ CSV row
+                    $metadata = $this->metadataParser->parseFromCsv($row, $headerRow);
+                    
+                    // Debug: Log body length trước khi validate
+                    $bodyLength = strlen($metadata['body'] ?? '');
+                    Log::info('CSV Row Parsed', [
+                        'row_index' => $index + 2,
+                        'body_length' => $bodyLength,
+                        'body_preview' => substr($metadata['body'] ?? '', 0, 150),
+                        'body_has_newlines' => strpos($metadata['body'] ?? '', "\n") !== false,
+                    ]);
+                    
+                    // Validate required fields
+                    if (empty($metadata['from']) || empty($metadata['to']) || empty($metadata['subject']) || empty($metadata['body'])) {
+                        $errors[] = "Row " . ($index + 2) . ": Missing required fields. Body length: " . $bodyLength;
+                        continue;
+                    }
 
                     // Sinh AES key ngẫu nhiên cho email này
                     $aesKey = $this->cryptoService->generateAesKey();
 
                     // Mã hóa nội dung email bằng AES
-                    $bodyEncrypted = $this->cryptoService->aesEncrypt($body, $aesKey);
+                    $bodyEncrypted = $this->cryptoService->aesEncrypt($metadata['body'], $aesKey);
 
                     // Mã hóa AES key bằng Public Key của Admin
                     $aesKeyEncryptedAdmin = $this->cryptoService->rsaEncrypt($aesKey, $adminPublicKeyPath);
 
                     // Tạo hash để verify integrity
-                    $hash = $this->cryptoService->hash($body);
+                    $hash = $this->cryptoService->hash($metadata['body']);
 
-                    // Lưu vào database
+                    // Convert headers array to JSON nếu là array
+                    if (is_array($metadata['headers'])) {
+                        $metadata['headers'] = json_encode($metadata['headers']);
+                    }
+
+                    // Convert attachments_info array to JSON nếu là array
+                    if (is_array($metadata['attachments_info'])) {
+                        $metadata['attachments_info'] = json_encode($metadata['attachments_info']);
+                    }
+
+                    // Lưu vào database với đầy đủ metadata
                     $email = Email::create([
-                        'from' => $from,
-                        'to' => $to,
-                        'subject' => $subject,
+                        'from' => $metadata['from'],
+                        'to' => $metadata['to'],
+                        'subject' => $metadata['subject'],
                         'body_encrypted' => $bodyEncrypted,
                         'aes_key_encrypted_admin' => $aesKeyEncryptedAdmin,
                         'hash' => $hash,
+                        // Metadata fields
+                        'date_sent' => $metadata['date_sent'],
+                        'date_received' => $metadata['date_received'],
+                        'cc' => $metadata['cc'],
+                        'bcc' => $metadata['bcc'],
+                        'reply_to' => $metadata['reply_to'],
+                        'message_id' => $metadata['message_id'],
+                        'headers' => $metadata['headers'],
+                        'sender_ip' => $metadata['sender_ip'],
+                        'attachments_info' => $metadata['attachments_info'],
+                        'mailer' => $metadata['mailer'],
                     ]);
 
-                    // Ghi log
+                    // Ghi log với metadata
                     $this->logService->logUploadEmail($email->id, [
-                        'from' => $from,
-                        'to' => $to,
-                        'subject' => $subject,
+                        'from' => $metadata['from'],
+                        'to' => $metadata['to'],
+                        'subject' => $metadata['subject'],
+                        'date_sent' => $metadata['date_sent']?->format('Y-m-d H:i:s'),
+                        'message_id' => $metadata['message_id'],
                     ]);
 
                     $uploadedCount++;
@@ -481,37 +558,80 @@ class AdminController extends Controller
             $email = Email::findOrFail($emailId);
             $admin = Auth::user();
             
+            // Kiểm tra email có dữ liệu mã hóa không
+            if (empty($email->body_encrypted) || empty($email->aes_key_encrypted_admin)) {
+                return back()->with('error', 'Email không có dữ liệu được mã hóa.');
+            }
+            
             // Lấy private key của admin
             $adminPrivateKeyPath = storage_path($admin->private_key_path);
             
             if (!file_exists($adminPrivateKeyPath)) {
-                return back()->with('error', 'Admin private key not found.');
+                return back()->with('error', 'Admin private key not found. Please generate keys first.');
             }
 
             // Giải mã AES key bằng Private Key của Admin
-            $aesKey = $this->cryptoService->rsaDecrypt(
-                $email->aes_key_encrypted_admin,
-                $adminPrivateKeyPath
-            );
+            try {
+                $aesKey = $this->cryptoService->rsaDecrypt(
+                    $email->aes_key_encrypted_admin,
+                    $adminPrivateKeyPath
+                );
+            } catch (Exception $e) {
+                return back()->with('error', 'Lỗi giải mã AES key: ' . $e->getMessage());
+            }
 
             // Giải mã nội dung email
-            $bodyDecrypted = $this->cryptoService->aesDecrypt(
-                $email->body_encrypted,
-                $aesKey
-            );
+            try {
+                $bodyDecrypted = $this->cryptoService->aesDecrypt(
+                    $email->body_encrypted,
+                    $aesKey
+                );
+            } catch (Exception $e) {
+                return back()->with('error', 'Lỗi giải mã nội dung email: ' . $e->getMessage());
+            }
+
+            // Kiểm tra body decrypted có rỗng không
+            if (empty($bodyDecrypted)) {
+                return back()->with('error', 'Nội dung email giải mã được là rỗng.');
+            }
+
+            // Debug: Log để kiểm tra độ dài thực tế
+            $bodyLength = strlen($bodyDecrypted);
+            Log::info('Email content decrypted', [
+                'email_id' => $emailId,
+                'body_length' => $bodyLength,
+                'first_100_chars' => substr($bodyDecrypted, 0, 100),
+                'last_100_chars' => substr($bodyDecrypted, -100),
+                'newline_count' => substr_count($bodyDecrypted, "\n"),
+            ]);
 
             // Verify hash
-            $isValid = $this->cryptoService->verifyHash($bodyDecrypted, $email->hash);
+            $isValid = false;
+            if (!empty($email->hash)) {
+                try {
+                    $isValid = $this->cryptoService->verifyHash($bodyDecrypted, $email->hash);
+                } catch (Exception $e) {
+                    // Log nhưng không block việc hiển thị
+                    Log::warning('Hash verification failed for email ' . $emailId . ': ' . $e->getMessage());
+                }
+            }
 
             // Ghi log - admin đọc nội dung email
             $this->logService->log(LogService::ACTION_VIEW_EMAIL, (string)$emailId, [
                 'admin_read_content' => true,
                 'hash_valid' => $isValid,
+                'body_length' => $bodyLength,
             ]);
 
             return view('admin.email-content', compact('email', 'bodyDecrypted', 'isValid'));
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return back()->with('error', 'Email không tồn tại.');
         } catch (Exception $e) {
+            Log::error('Error reading email content: ' . $e->getMessage(), [
+                'email_id' => $emailId,
+                'trace' => $e->getTraceAsString()
+            ]);
             return back()->with('error', 'Không thể đọc nội dung email: ' . $e->getMessage());
         }
     }

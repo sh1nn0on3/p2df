@@ -1,0 +1,121 @@
+from,to,subject,body,date_sent,date_received,cc,bcc,reply_to,message_id,sender_ip,mailer
+john.doe@company.com,jane.smith@company.com,Quarterly Report Review,"Hi Jane,
+
+Please review the attached quarterly report. We need to discuss the Q3 results in tomorrow's meeting.
+
+The revenue has increased by 15% compared to last quarter. However, there are some concerns about the operational costs.
+
+Best regards,
+John",2025-10-15 09:30:00,2025-10-15 09:32:00,manager@company.com,ceo@company.com,john.doe@company.com,<20251015093000.john.doe@company.com>,192.168.1.105,Microsoft Outlook
+alice.wang@tech.com,bob.jones@tech.com,Project Alpha - Security Concerns,"Bob,
+
+I've identified several security vulnerabilities in Project Alpha. We need to address these issues before the release.
+
+Critical issues found:
+1. SQL Injection vulnerability in login form
+2. XSS vulnerability in comment section
+3. Weak password hashing implementation
+
+Please review the attached security report.
+
+Regards,
+Alice",2025-10-18 14:15:00,2025-10-18 14:16:00,security-team@tech.com,,alice.wang@tech.com,<20251018141500.alice.wang@tech.com>,10.0.0.45,Thunderbird
+sarah.connor@example.org,admin@example.org,Data Breach Notification - URGENT,"URGENT: Security Breach Detected
+
+We have detected unauthorized access to our database server. The incident occurred at approximately 03:45 AM on October 20th.
+
+Affected systems:
+- Customer database
+- User credentials (encrypted)
+- Transaction logs
+
+Immediate action required. Please contact the security team immediately.
+
+Sarah Connor
+IT Security Officer",2025-10-20 03:50:00,2025-10-20 03:52:00,security@example.org,ciso@example.org,sarah.connor@example.org,<20251020035000.sarah.connor@example.org>,172.16.0.128,Gmail Web
+mark.thompson@corp.com,support@corp.com,Invoice Payment Issue,"Hello Support Team,
+
+I'm experiencing issues with processing invoice #INV-2025-1042. The payment gateway is returning an error when attempting to process the transaction.
+
+Error message: 'Payment Gateway Timeout - Please try again later'
+
+This is affecting our ability to complete time-sensitive transactions. Please investigate and resolve ASAP.
+
+Thank you,
+Mark Thompson",2025-10-22 11:20:00,2025-10-22 11:21:00,billing@corp.com,,mark.thompson@corp.com,<20251022112000.mark.thompson@corp.com>,203.0.113.42,Apple Mail
+david.miller@forensic.com,lisa.brown@forensic.com,Suspicious Email Activity Report,"Lisa,
+
+I've completed the forensic analysis of the suspicious emails you flagged. Here's my preliminary report:
+
+Findings:
+1. 15 emails sent from compromised account (john.user@victim.com)
+2. All emails contain malicious attachments
+3. Sender IP traced to multiple locations (IP hopping detected)
+4. Email headers indicate spoofing attempts
+
+The emails appear to be part of a coordinated phishing campaign. Complete forensic report attached.
+
+Best,
+David Miller
+Digital Forensics Specialist",2025-10-25 16:45:00,2025-10-25 16:46:00,team-lead@forensic.com,compliance@forensic.com,david.miller@forensic.com,<20251025164500.david.miller@forensic.com>,198.51.100.73,Postfix
+emily.chen@startup.io,team@startup.io,Product Launch - Beta Testing,"Hi Team,
+
+Great news! We're ready to launch the beta version of our new product. 
+
+Beta testing will begin next Monday. All team members will receive access credentials via separate email.
+
+Key features in this release:
+- Enhanced user interface
+- Improved performance (50% faster)
+- New analytics dashboard
+- Mobile app integration
+
+Let's make this launch successful!
+
+Emily Chen
+Product Manager",2025-10-28 10:00:00,2025-10-28 10:01:00,dev-team@startup.io,investors@startup.io,emily.chen@startup.io,<20251028100000.emily.chen@startup.io>,203.0.113.89,Google Workspace
+hacker@malicious.org,target@victim.com,Re: Invoice Payment Confirmation,"Dear Customer,
+
+We noticed an issue with your recent payment. Please click the link below to verify your account:
+
+VERIFY NOW: http://fake-payment-site.com/verify?token=abc123xyz
+
+Your account will be temporarily suspended if you don't verify within 24 hours.
+
+This is an automated message. Please do not reply.
+
+Account Security Team",2025-10-20 18:30:00,2025-10-20 18:31:00,,,noreply@fake-security.com,<20251020183000.hacker@malicious.org>,185.220.101.45,Fake Email Client
+support@legitimate-bank.com,customer@example.com,Account Security Alert,"Dear Valued Customer,
+
+We detected a login attempt to your account from an unrecognized device in a different location.
+
+Device Details:
+- Location: Unknown
+- IP Address: 203.0.113.200
+- Browser: Unknown
+- Time: October 20, 2025 at 2:15 AM
+
+If this wasn't you, please secure your account immediately by clicking the link below:
+
+SECURE ACCOUNT: https://bank-website.com/secure-account
+
+Your Security Team
+Legitimate Bank",2025-10-20 02:20:00,2025-10-20 02:21:00,,security@legitimate-bank.com,support@legitimate-bank.com,<20251020022000.support@legitimate-bank.com>,198.51.100.50,SendGrid
+investigator@forensic.gov,suspect@case.com,Request for Digital Evidence Preservation,"Official Notice: Digital Evidence Preservation Request
+
+Case Number: CF-2025-0042
+Subject: Email Investigation
+
+Dear Sir/Madam,
+
+Pursuant to the Digital Evidence Act, we request your cooperation in preserving and providing digital evidence related to email communications.
+
+Please preserve all emails sent or received between:
+- Date Range: October 1, 2025 to October 30, 2025
+- Subject lines containing: 'payment', 'invoice', 'transfer'
+
+This is a formal legal request. Failure to comply may result in legal consequences.
+
+Investigator Name
+Digital Forensics Division",2025-10-29 09:00:00,2025-10-29 09:01:00,legal@forensic.gov,records@forensic.gov,investigator@forensic.gov,<20251029090000.investigator@forensic.gov>,192.0.2.100,Government Email System
+

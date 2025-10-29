@@ -64,12 +64,39 @@
 
                     <div class="mb-3">
                         <h6 class="font-weight-bold">
-                            <i class="fas fa-envelope-open-text"></i> Email Subject:
+                            <i class="fas fa-envelope-open-text"></i> Email Information:
                         </h6>
-                        <p class="mb-1"><strong>{{ $request->email->subject }}</strong></p>
-                        <small class="text-muted">
-                            <i class="fas fa-arrow-right"></i> {{ $request->email->from }} → {{ $request->email->to }}
-                        </small>
+                        <p class="mb-1">
+                            <strong>{{ $request->email->subject }}</strong>
+                            <a href="{{ route('admin.emails.content', $request->email->id) }}" class="btn btn-sm btn-outline-primary ml-2" title="View Email Details">
+                                <i class="fas fa-eye"></i> View Email
+                            </a>
+                        </p>
+                        <div class="small text-muted">
+                            <div class="mb-1">
+                                <i class="fas fa-arrow-right"></i> {{ $request->email->from }} → {{ $request->email->to }}
+                            </div>
+                            @if($request->email->cc)
+                            <div class="mb-1">
+                                <i class="fas fa-users"></i> CC: {{ Str::limit($request->email->cc, 40) }}
+                            </div>
+                            @endif
+                            @if($request->email->date_sent)
+                            <div class="mb-1">
+                                <i class="fas fa-clock"></i> Sent: {{ $request->email->date_sent->format('d/m/Y H:i') }}
+                            </div>
+                            @endif
+                            @if($request->email->sender_ip)
+                            <div class="mb-1">
+                                <i class="fas fa-network-wired"></i> IP: <code>{{ $request->email->sender_ip }}</code>
+                            </div>
+                            @endif
+                            @if($request->email->message_id)
+                            <div class="mb-1">
+                                <i class="fas fa-fingerprint"></i> Message ID: <small>{{ Str::limit($request->email->message_id, 30) }}</small>
+                            </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
@@ -104,11 +131,14 @@
                         </div>
                     @elseif($request->isApproved())
                         <div class="text-center mt-3">
-                            <div class="alert alert-success mb-0">
+                            <div class="alert alert-success mb-3">
                                 <i class="fas fa-check-circle"></i> <strong>Approved</strong>
                                 <br>
                                 <small>{{ $request->approved_at->format('M d, Y H:i') }}</small>
                             </div>
+                            <a href="{{ route('admin.emails.content', $request->email->id) }}" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-envelope-open"></i> View Email Content
+                            </a>
                         </div>
                     @else
                         <div class="text-center mt-3">

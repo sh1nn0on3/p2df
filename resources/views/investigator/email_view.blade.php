@@ -109,14 +109,82 @@
                     <strong><i class="fas fa-user"></i> To:</strong>
                     <span class="float-right">{{ $email->to }}</span>
                 </div>
+                @if($email->cc)
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-users"></i> CC:</strong>
+                    <span class="float-right">{{ $email->cc }}</span>
+                </div>
+                @endif
+                @if($email->bcc)
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-user-secret"></i> BCC:</strong>
+                    <span class="float-right text-muted">{{ $email->bcc }}</span>
+                </div>
+                @endif
+                @if($email->reply_to)
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-reply"></i> Reply-To:</strong>
+                    <span class="float-right">{{ $email->reply_to }}</span>
+                </div>
+                @endif
                 <div class="email-meta-row">
                     <strong><i class="fas fa-envelope"></i> Subject:</strong>
                     <span class="float-right font-weight-bold">{{ $email->subject }}</span>
                 </div>
+                @if($email->date_sent)
                 <div class="email-meta-row">
-                    <strong><i class="fas fa-calendar"></i> Date:</strong>
+                    <strong><i class="fas fa-paper-plane"></i> Date Sent:</strong>
+                    <span class="float-right">{{ $email->date_sent->format('Y-m-d H:i:s') }}</span>
+                </div>
+                @endif
+                @if($email->date_received)
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-inbox"></i> Date Received:</strong>
+                    <span class="float-right">{{ $email->date_received->format('Y-m-d H:i:s') }}</span>
+                </div>
+                @endif
+                @if($email->message_id)
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-fingerprint"></i> Message ID:</strong>
+                    <span class="float-right text-monospace small">{{ Str::limit($email->message_id, 50) }}</span>
+                </div>
+                @endif
+                @if($email->sender_ip)
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-network-wired"></i> Sender IP:</strong>
+                    <span class="float-right">
+                        <code>{{ $email->sender_ip }}</code>
+                        <a href="https://www.abuseipdb.com/check/{{ $email->sender_ip }}" target="_blank" class="ml-2" title="Check IP reputation">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </span>
+                </div>
+                @endif
+                @if($email->mailer)
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-mail-bulk"></i> Mailer/Client:</strong>
+                    <span class="float-right">{{ $email->mailer }}</span>
+                </div>
+                @endif
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-calendar"></i> Created in System:</strong>
                     <span class="float-right">{{ $email->created_at->format('Y-m-d H:i:s') }}</span>
                 </div>
+                @if($email->headers && is_array($email->headers))
+                <div class="email-meta-row">
+                    <strong><i class="fas fa-code"></i> Email Headers:</strong>
+                    <button type="button" class="btn btn-sm btn-outline-info float-right" data-toggle="collapse" data-target="#headersCollapse">
+                        <i class="fas fa-chevron-down"></i> Show
+                    </button>
+                </div>
+                <div class="collapse" id="headersCollapse">
+                    <div class="p-3 bg-dark text-light" style="font-family: monospace; font-size: 0.85em; max-height: 400px; overflow-y: auto;">
+                        @foreach($email->headers as $key => $value)
+                            <div class="mb-1"><strong>{{ $key }}:</strong> {{ is_array($value) ? json_encode($value) : $value }}</div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 

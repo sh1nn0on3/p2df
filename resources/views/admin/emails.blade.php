@@ -143,8 +143,8 @@
                         <th>From</th>
                         <th>To</th>
                         <th>Subject</th>
+                        <th>Date Sent</th>
                         <th>Status</th>
-                        <th>Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -156,14 +156,20 @@
                             <td><small>{{ $email->to }}</small></td>
                             <td><strong>{{ $email->subject }}</strong></td>
                             <td>
+                                @if($email->date_sent)
+                                    <small>{{ $email->date_sent->format('M d, Y') }}</small>
+                                    <br>
+                                    <small class="text-muted">{{ $email->date_sent->format('H:i') }}</small>
+                                @else
+                                    <small class="text-muted">{{ $email->created_at->format('M d, Y') }}</small>
+                                    <br>
+                                    <small class="text-muted">{{ $email->created_at->format('H:i') }}</small>
+                                @endif
+                            </td>
+                            <td>
                                 <span class="badge badge-success">
                                     <i class="fas fa-lock"></i> Encrypted
                                 </span>
-                            </td>
-                            <td>
-                                <small>{{ $email->created_at->format('M d, Y') }}</small>
-                                <br>
-                                <small class="text-muted">{{ $email->created_at->format('H:i') }}</small>
                             </td>
                             <td>
                                 <a href="{{ route('admin.emails.content', $email->id) }}" 
