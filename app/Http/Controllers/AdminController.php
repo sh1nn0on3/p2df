@@ -172,7 +172,15 @@ class AdminController extends Controller
             $query->search($search);
         }
 
-        $emails = $query->latest()->paginate(20);
+        // Get all emails (no pagination)
+        $stats = [
+            'total' => Email::count(),
+            'today' => Email::where('created_at', '>=', now()->startOfDay())->count(),
+            'this_week' => Email::where('created_at', '>=', now()->startOfWeek())->count(),
+            'this_month' => Email::where('created_at', '>=', now()->startOfMonth())->count(),
+        ];
+
+        $emails = $query->latest()->get();
 
         // Ghi log xem danh sách email
         $this->logService->logViewEmailList([
@@ -180,7 +188,7 @@ class AdminController extends Controller
             'page' => $request->get('page', 1),
         ]);
 
-        return view('admin.emails', compact('emails'));
+        return view('admin.emails', compact('emails', 'stats'));
     }
 
     /**

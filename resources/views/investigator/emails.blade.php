@@ -63,7 +63,13 @@
 @section('content')
 <div class="page-header">
     <h2><i class="fas fa-envelope"></i> Danh Sách Email</h2>
-    <p class="text-muted">Duyệt qua các email có sẵn - Yêu cầu giải mã để xem nội dung</p>
+    <p class="text-muted">
+        @if(request('search'))
+            Tìm thấy: <strong>{{ $emails->count() }}</strong> kết quả
+        @else
+            Tổng cộng: <strong>{{ $emails->count() }}</strong> email
+        @endif
+    </p>
 </div>
 
 <!-- Search Box -->
@@ -148,10 +154,4 @@
         </div>
     @endforelse
 </div>
-
-@if($emails->hasPages())
-    <div class="d-flex justify-content-center mt-4">
-        {{ $emails->links() }}
-    </div>
-@endif
 @endsection

@@ -67,12 +67,11 @@ class InvestigatorController extends Controller
             $query->search($search);
         }
 
-        $emails = $query->latest()->paginate(20);
+        $emails = $query->latest()->get();
 
         // Ghi log xem danh sách email
         $this->logService->logViewEmailList([
             'search' => $request->get('search'),
-            'page' => $request->get('page', 1),
         ]);
 
         return view('investigator.emails', compact('emails'));
